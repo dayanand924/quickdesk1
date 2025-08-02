@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickDesk | Modern Support Ticket System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .auth-bg {
+            background-image: url('https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .auth-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .floating-label-input {
+            position: relative;
+        }
+        .floating-label-input input:focus ~ label,
+        .floating-label-input input:not(:placeholder-shown) ~ label {
+            transform: translateY(-1.5rem) scale(0.85);
+            background-color: white;
+            padding: 0 0.5rem;
+            color: #3b82f6;
+        }
+        .floating-label-input label {
+            transition: all 0.2s ease-out;
+            position: absolute;
+            top: 0.75rem;
+            left: 1rem;
+            color: #6b7280;
+            pointer-events: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+    <!-- Navigation - Modern Sticky Header -->
+    <nav class="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100 backdrop-blur-sm bg-opacity-90">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Logo/Brand with smooth hover effect -->
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 bg-blue-100 rounded-lg transform transition duration-300 hover:rotate-12">
+                        <i class="fas fa-headset text-blue-600 text-xl"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">QuickDesk</h1>
+                </div>
+
+                <!-- User/Auth Section with animated transitions -->
+                <div class="flex items-center space-x-3">
+                    <div id="userInfo" class="hidden animate-fade-in">
+                        <div class="flex items-center space-x-4">
+                            <!-- Notification Bell -->
+                            <div class="relative group">
+                                <button class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition">
+                                    <i class="far fa-bell"></i>
+                                    <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                                </button>
+                                <!-- Notification Dropdown -->
+                                <div class="hidden group-hover:block absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                                    <div class="px-4 py-2 text-sm font-medium text-gray-700 border-b">Notifications</div>
+                                    <div id="notificationList" class="max-h-60 overflow-y-auto">
+                                        <!-- Notifications will load here -->
+                                        <div class="px-4 py-3 hover:bg-gray-50 transition">
+                                            <p class="text-sm">Your ticket #TKT-1234 was updated</p>
+                                            <p class="text-xs text-gray-500 mt-1">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                    <a href="#" class="block px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 text-center border-t">View all</a>
+                                </div>
+                            </div>
+
+                            <!-- User Profile Dropdown -->
+                            <div class="relative group">
+                                <button class="flex items-center space-x-2 focus:outline-none">
+                                    <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-medium" id="userAvatar">
+                                        <!-- Initial will be inserted here -->
+                                    </div>
+                                    <span id="userName" class="text-gray-700 font-medium hidden md:inline-block"></span>
+                                    <i class="fas fa-chevron-down text-xs text-gray-400 transition-transform duration-200 group-hover:rotate-180"></i>
+                                </button>
+                                
+                                <!-- Dropdown Menu -->
+                                <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden group-hover:block border border-gray-100">
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center">
+                                        <i class="fas fa-user-circle mr-2"></i> Profile
+                                    </a>
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition flex items-center">
+                                        <i class="fas fa-cog mr-2"></i> Settings
+                                    </a>
+                                    <div class="border-t border-gray-100"></div>
+                                    <button id="logoutBtn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition flex items-center">
+                                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="authButtons" class="flex space-x-2">
+                        <button id="loginBtn" class="px-4 py-2 rounded-lg transition-all duration-300 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
+                            <i class="fas fa-sign-in-alt mr-2"></i><span class="hidden sm:inline">Login</span>
+                        </button>
+                        <button id="registerBtn" class="px-4 py-2 rounded-lg transition-all duration-300 bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
+                            <i class="fas fa-user-plus mr-2"></i><span class="hidden sm:inline">Register</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content with Background Image for Auth Pages -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Background for Auth Pages -->
+        <div id="authBackground" class="auth-bg auth-overlay fixed inset-0 -z-10"></div>
+
+        <!-- Auth Forms - Centered with card design -->
+        <div id="authSection" class="max-w-md mx-auto relative">
+            <!-- Login Form with floating labels -->
+            <div id="loginForm" class="bg-white rounded-xl shadow-lg overflow-hidden hidden transition-all duration-500 ease-in-out backdrop-blur-sm bg-opacity-90">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
+                    <h2 class="text-2xl font-bold text-white text-center">Welcome Back</h2>
+                    <p class="text-blue-100 text-center mt-1">Login to your QuickDesk account</p>
+                </div>
+                <form id="loginFormElement" class="p-6 space-y-6">
+                    <div class="floating-label-input">
+                        <input type="email" id="loginEmail" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" placeholder=" " required>
+                        <label for="loginEmail">Email</label>
+                    </div>
+                    <div class="floating-label-input">
+                        <input type="password" id="loginPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" placeholder=" " required>
+                        <label for="loginPassword">Password</label>
+                        <button type="button" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600" id="toggleLoginPassword">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="rememberMe" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="rememberMe" class="ml-2 block text-sm text-gray-700">Remember me</label>
+                        </div>
+                        <a href="#" class="text-sm text-blue-600 hover:text-blue-800">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow hover:shadow-md">
+                        Login
+                    </button>
+                    <div class="relative flex items-center">
+                        <div class="flex-grow border-t border-gray-300"></div>
+                        <span class="flex-shrink mx-4 text-gray-400 text-sm">OR</span>
+                        <div class="flex-grow border-t border-gray-300"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" class="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            <i class="fab fa-google text-red-500 mr-2"></i>
+                            <span class="text-sm">Google</span>
+                        </button>
+                        <button type="button" class="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                            <i class="fab fa-microsoft text-blue-500 mr-2"></i>
+                            <span class="text-sm">Microsoft</span>
+                        </button>
+                    </div>
+                    <p class="text-center text-gray-600 text-sm">
+                        Don't have an account? 
+                        <button id="switchToRegister" class="text-blue-600 hover:text-blue-800 font-medium">Register here</button>
+                    </p>
+                </form>
+            </div>
+
+            <!-- Register Form with animated transitions -->
+            <div id="registerForm" class="bg-white rounded-xl shadow-lg overflow-hidden hidden transition-all duration-500 ease-in-out backdrop-blur-sm bg-opacity-90">
+                <div class="bg-gradient-to-r from-green-500 to-green-600 p-6">
+                    <h2 class="text-2xl font-bold text-white text-center">Create Account</h2>
+                    <p class="text-green-100 text-center mt-1">Join QuickDesk today</p>
+                </div>
+                <form id="registerFormElement" class="p-6 space-y-6">
+                    <div class="floating-label-input">
+                        <input type="text" id="registerName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition" placeholder=" " required>
+                        <label for="registerName">Full Name</label>
+                    </div>
+                    <div class="floating-label-input">
+                        <input type="email" id="registerEmail" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition" placeholder=" " required>
+                        <label for="registerEmail">Email</label>
+                    </div>
+                    <div class="floating-label-input">
+                        <input type="password" id="registerPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition" placeholder=" " required>
+                        <label for="registerPassword">Password</label>
+                        <button type="button" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600" id="toggleRegisterPassword">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <select id="registerRole" class="w-full px-4 py-3 border border-gray-300 rounded-lg appearance-none peer focus:ring-green-500 focus:border-green-500 transition bg-white">
+                            <option value="user">User</option>
+                            <option value="agent">Support Agent</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                        <label for="registerRole" class="absolute left-3 -top-2 px-1 bg-white text-sm text-green-600">Role</label>
+                        <i class="fas fa-chevron-down absolute right-3 top-4 text-gray-400 pointer-events-none"></i>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="terms" name="terms" type="checkbox" class="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded" required>
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="terms" class="text-gray-700">I agree to the <a href="#" class="text-green-600 hover:text-green-800">Terms of Service</a> and <a href="#" class="text-green-600 hover:text-green-800">Privacy Policy</a></label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow hover:shadow-md">
+                        Create Account
+                    </button>
+                    <p class="text-center text-gray-600 text-sm">
+                        Already have an account? 
+                        <button id="switchToLogin" class="text-green-600 hover:text-green-800 font-medium">Login here</button>
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard - Modern Layout with Card Design -->
+        <div id="dashboard" class="hidden">
+            <!-- Profile Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+                <div class="flex flex-col md:flex-row md:items-center md:space-x-6">
+                    <div class="flex-shrink-0 mb-4 md:mb-0">
+                        <div class="h-20 w-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold" id="profileAvatar">
+                            <!-- Initial will be inserted here -->
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900" id="profileName">Loading...</h2>
+                        <p class="text-gray-600 mb-2" id="profileEmail">user@example.com</p>
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                <i class="fas fa-shield-alt mr-1"></i> <span id="profileRole">User</span>
+                            </span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                <i class="fas fa-ticket-alt mr-1"></i> <span id="ticketsCount">0</span> Tickets
+                            </span>
+                            <span class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                                Member since <span id="joinDate">Jan 2023</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <button id="editProfileBtn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition flex items-center">
+                            <i class="fas fa-edit mr-2"></i> Edit Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Header with Stats Cards -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- Open Tickets Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-blue-100">
+                        <div class="p-5">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Open Tickets</p>
+                                    <p id="openTicketsCount" class="text-3xl font-bold text-blue-600 mt-1">0</p>
+                                </div>
+                                <div class="p-3 rounded-lg bg-blue-50 text-blue-600">
+                                    <i class="fas fa-ticket-alt text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="h-2 bg-blue-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-500 rounded-full" style="width: 60%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Updated just now</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- In Progress Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-yellow-100">
+                        <div class="p-5">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">In Progress</p>
+                                    <p id="inProgressCount" class="text-3xl font-bold text-yellow-600 mt-1">0</p>
+                                </div>
+                                <div class="p-3 rounded-lg bg-yellow-50 text-yellow-600">
+                                    <i class="fas fa-clock text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="h-2 bg-yellow-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-yellow-500 rounded-full" style="width: 30%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Updated just now</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resolved Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-green-100">
+                        <div class="p-5">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Resolved</p>
+                                    <p id="resolvedCount" class="text-3xl font-bold text-green-600 mt-1">0</p>
+                                </div>
+                                <div class="p-3 rounded-lg bg-green-50 text-green-600">
+                                    <i class="fas fa-check-circle text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="h-2 bg-green-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500 rounded-full" style="width: 45%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Updated just now</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Closed Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-md hover:border-gray-200">
+                        <div class="p-5">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Closed</p>
+                                    <p id="closedCount" class="text-3xl font-bold text-gray-600 mt-1">0</p>
+                                </div>
+                                <div class="p-3 rounded-lg bg-gray-50 text-gray-600">
+                                    <i class="fas fa-archive text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gray-500 rounded-full" style="width: 25%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Updated just now</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons with Floating Effect -->
+            <div class="flex flex-wrap gap-4 mb-8">
+                <button id="createTicketBtn" class="flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-md hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1 hover:scale-105">
+                    <i class="fas fa-plus-circle mr-2 text-lg"></i>
+                    <span>Create New Ticket</span>
+                </button>
+                <button id="manageCategories" class="admin-only hidden flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl shadow-md hover:shadow-lg transform transition-all duration-300 hover:-translate-y-1 hover:scale-105">
+                    <i class="fas fa-tags mr-2 text-lg"></i>
+                    <span>Manage Categories</span>
+                </button>
+            </div>
+
+            <!-- Filters and Search - Modern Card Design -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Ticket Management</h3>
+                    <div class="mt-4 md:mt-0 relative w-full md:w-auto">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" id="searchInput" placeholder="Search tickets..." class="pl-10 w-full md:w-64 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All Status</option>
+                            <option value="open">Open</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select id="categoryFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                        <select id="priorityFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All Priorities</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                        <select id="sortBy" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="created">Recently Created</option>
+                            <option value="modified">Recently Modified</option>
+                            <option value="replies">Most Replied</option>
+                            <option value="votes">Most Voted</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center">
+                    <input type="checkbox" id="myTicketsOnly" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="myTicketsOnly" class="ml-2 block text-sm text-gray-700">Show only my tickets</label>
+                </div>
+            </div>
+
+            <!-- Tickets List - Modern Card Layout -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Support Tickets</h3>
+                    <div class="mt-2 sm:mt-0 flex items-center space-x-2">
+                        <span class="text-sm text-gray-500" id="ticketCount">0 tickets</span>
+                        <div class="flex space-x-1">
+                            <button class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                            <button class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="ticketsList" class="divide-y divide-gray-100">
+                    <!-- Tickets will be loaded here -->
+                    <div class="p-6 hover:bg-gray-50 transition cursor-pointer">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0 pt-1">
+                                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                        <i class="fas fa-ticket-alt"></i>
+                                    </div>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center space-x-2">
+                                        <p class="text-sm font-medium text-blue-600">#TKT-1234</p>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Open</span>
+                                    </div>
+                                    <p class="text-base font-medium text-gray-900 mt-1">Cannot login to my account</p>
+                                    <p class="text-sm text-gray-500 mt-1">Created 2 hours ago by John Doe</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 md:mt-0 flex items-center space-x-4">
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-comment mr-1.5 text-gray-400"></i>
+                                    <span>3</span>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-clock mr-1.5 text-gray-400"></i>
+                                    <span>2d</span>
+                                </div>
+                                <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Previous
+                        </button>
+                        <button class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Next
+                        </button>
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">20</span> results
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <button class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">Previous</span>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    1
+                                </button>
+                                <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    2
+                                </button>
+                                <button class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    3
+                                </button>
+                                <button class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">Next</span>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Ticket Modal - Modern Dialog -->
+    <div id="createTicketModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-in-out">
+            <div class="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-semibold text-gray-900">Create New Ticket</h3>
+                    <button id="closeCreateModal" class="text-gray-400 hover:text-gray-500 rounded-full p-1 hover:bg-gray-100">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="createTicketForm" class="p-6 space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+                    <input type="text" id="ticketSubject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Briefly describe your issue" required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                        <select id="ticketCategory" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition appearance-none" required>
+                            <option value="">Select Category</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-11 text-gray-400 pointer-events-none"></i>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                        <select id="ticketPriority" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                    <textarea id="ticketDescription" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Please describe your issue in detail..." required></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Attachment (Optional)</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                        <div class="space-y-1 text-center">
+                            <div class="flex text-sm text-gray-600">
+                                <label for="ticketAttachment" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                                    <span>Upload a file</span>
+                                    <input id="ticketAttachment" name="ticketAttachment" type="file" class="sr-only">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancelCreateTicket" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition transform hover:scale-[1.02] shadow hover:shadow-md">
+                        Create Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ticket Detail Modal - Modern Dialog -->
+    <div id="ticketDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-in-out">
+            <div class="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 id="ticketDetailTitle" class="text-xl font-semibold text-gray-900">Ticket Details</h3>
+                        <p id="ticketDetailMeta" class="text-sm text-gray-500 mt-1">Loading...</p>
+                    </div>
+                    <button id="closeDetailModal" class="text-gray-400 hover:text-gray-500 rounded-full p-1 hover:bg-gray-100">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="ticketDetailContent" class="p-6 space-y-6">
+                <!-- Ticket details will be loaded here -->
+                <div class="animate-pulse space-y-4">
+                    <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div class="space-y-2">
+                        <div class="h-4 bg-gray-200 rounded"></div>
+                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Management Modal - Modern Dialog -->
+    <div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-in-out">
+            <div class="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-semibold text-gray-900">Manage Categories</h3>
+                    <button id="closeCategoryModal" class="text-gray-400 hover:text-gray-500 rounded-full p-1 hover:bg-gray-100">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <form id="addCategoryForm" class="flex gap-3 mb-6">
+                    <div class="flex-grow">
+                        <input type="text" id="newCategoryName" placeholder="Enter category name" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" required>
+                    </div>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition transform hover:scale-[1.02]">
+                        Add
+                    </button>
+                </form>
+                <div id="categoriesList" class="space-y-3">
+                    <!-- Categories will be loaded here -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <span class="font-medium">General Support</span>
+                        <div class="flex space-x-2">
+                            <button class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900">Edit Profile</h3>
+                <button id="closeEditProfileModal" class="text-gray-400 hover:text-gray-500 rounded-full p-1 hover:bg-gray-100">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="editProfileForm" class="p-6 space-y-6">
+                <div class="flex flex-col items-center">
+                    <div class="relative mb-4">
+                        <div class="h-24 w-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-4xl font-bold mb-2 overflow-hidden" id="profileAvatarPreview">
+                            <!-- Initial will be inserted here -->
+                        </div>
+                        <button type="button" class="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-sm border border-gray-200 hover:bg-gray-100">
+                            <i class="fas fa-camera text-gray-600"></i>
+                        </button>
+                    </div>
+                    <input type="file" id="profileImageUpload" class="hidden" accept="image/*">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input type="text" id="editProfileName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="editProfileEmail" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Change Password</label>
+                    <input type="password" id="editProfilePassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Leave blank to keep current">
+                </div>
+                
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancelEditProfile" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition transform hover:scale-[1.02]">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="fixed bottom-4 right-4 hidden">
+        <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 transform transition-all duration-300 translate-x-24">
+            <i class="fas fa-check-circle text-xl"></i>
+            <span id="notificationMessage">Operation completed successfully!</span>
+            <button class="text-white hover:text-gray-200" id="closeToast">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-30 hidden z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-xl shadow-xl flex flex-col items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+            <p class="text-gray-700">Processing your request...</p>
+        </div>
+    </div>
+
+   <script>
+        // Application State
+        let currentUser = null;
+        let tickets = [];
+        let categories = [
+            { id: 1, name: 'Technical Support' },
+            { id: 2, name: 'Billing' },
+            { id: 3, name: 'General Inquiry' },
+            { id: 4, name: 'Bug Report' },
+            { id: 5, name: 'Feature Request' }
+        ];
+        let users = [];
+
+        // Initialize data from localStorage or create default data
+        function initializeData() {
+            const storedCurrentUser = localStorage.getItem('currentUser');
+            if (storedCurrentUser) {
+                currentUser = JSON.parse(storedCurrentUser);
+            }
+            
+            const storedTickets = localStorage.getItem('tickets');
+            if (storedTickets) {
+                tickets = JSON.parse(storedTickets);
+            }
+            
+            const storedCategories = localStorage.getItem('categories');
+            if (storedCategories) {
+                categories = JSON.parse(storedCategories);
+            } else {
+                localStorage.setItem('categories', JSON.stringify(categories));
+            }
+            
+            const storedUsers = localStorage.getItem('users');
+            if (storedUsers) {
+                users = JSON.parse(storedUsers);
+            } else {
+                createSampleUsers();
+            }
+        }
+
+        // Create sample data
+        function createSampleUsers() {
+            const sampleUsers = [
+                { id: 1, name: 'John Admin', email: 'admin@quickdesk.com', password: 'admin123', role: 'admin', createdAt: new Date().toISOString() },
+                { id: 2, name: 'Jane Agent', email: 'agent@quickdesk.com', password: 'agent123', role: 'agent', createdAt: new Date().toISOString() },
+                { id: 3, name: 'Bob User', email: 'user@quickdesk.com', password: 'user123', role: 'user', createdAt: new Date().toISOString() }
+            ];
+            
+            users = sampleUsers;
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // Create sample tickets
+            const sampleTickets = [
+                {
+                    id: 1001,
+                    subject: 'Login Issues',
+                    category: '1',
+                    priority: 'high',
+                    description: 'I cannot log into my account. Getting error message "Invalid credentials" even with correct password.',
+                    status: 'open',
+                    createdBy: 3,
+                    createdByName: 'Bob User',
+                    assignedTo: null,
+                    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                    comments: [],
+                    votes: { up: 2, down: 0, userVotes: {} },
+                    attachment: null
+                },
+                {
+                    id: 1002,
+                    subject: 'Billing Question',
+                    category: '2',
+                    priority: 'medium',
+                    description: 'I was charged twice for my subscription this month. Could you please check and refund the duplicate charge?',
+                    status: 'in-progress',
+                    createdBy: 3,
+                    createdByName: 'Bob User',
+                    assignedTo: 'Jane Agent',
+                    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                    updatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+                    comments: [
+                        {
+                            id: 1,
+                            content: 'Thank you for reporting this. I\'m looking into your billing records now.',
+                            authorId: 2,
+                            authorName: 'Jane Agent',
+                            createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
+                        }
+                    ],
+                    votes: { up: 1, down: 0, userVotes: {} },
+                    attachment: null
+                }
+            ];
+            
+            tickets = sampleTickets;
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+        }
+
+        // DOM Elements
+        const authSection = document.getElementById('authSection');
+        const dashboard = document.getElementById('dashboard');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const userInfo = document.getElementById('userInfo');
+        const authButtons = document.getElementById('authButtons');
+        const authBackground = document.getElementById('authBackground');
+
+        // Initialize App
+        function initApp() {
+            initializeData();
+            
+            if (currentUser) {
+                showDashboard();
+            } else {
+                showAuth();
+            }
+            loadCategories();
+            
+            // Setup event listeners
+            setupEventListeners();
+        }
+
+        // Show Auth Section
+        function showAuth() {
+            authSection.classList.remove('hidden');
+            dashboard.classList.add('hidden');
+            userInfo.classList.add('hidden');
+            authButtons.classList.remove('hidden');
+            authBackground.classList.remove('hidden');
+            
+            // Show login form by default
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        }
+
+        // Show Dashboard
+        function showDashboard() {
+            authSection.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+            userInfo.classList.remove('hidden');
+            authButtons.classList.add('hidden');
+            authBackground.classList.add('hidden');
+            
+            document.getElementById('userName').textContent = `Welcome, ${currentUser.name}`;
+            
+            // Show/hide admin features
+            const adminElements = document.querySelectorAll('.admin-only');
+            adminElements.forEach(el => {
+                if (currentUser.role === 'admin') {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            });
+            
+            loadTickets();
+            updateDashboardStats();
+        }
+
+        // Setup all event listeners
+        function setupEventListeners() {
+            // Toggle between login and register forms
+            document.getElementById('loginBtn').addEventListener('click', () => {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            });
+
+            document.getElementById('registerBtn').addEventListener('click', () => {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            });
+
+            document.getElementById('switchToRegister').addEventListener('click', () => {
+                registerForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            });
+
+            document.getElementById('switchToLogin').addEventListener('click', () => {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            });
+
+            // Toggle password visibility
+            function setupPasswordToggle(inputId, buttonId) {
+                const passwordInput = document.getElementById(inputId);
+                const toggleButton = document.getElementById(buttonId);
+                
+                toggleButton.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    toggleButton.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+                });
+            }
+
+            setupPasswordToggle('loginPassword', 'toggleLoginPassword');
+            setupPasswordToggle('registerPassword', 'toggleRegisterPassword');
+
+            // Form submissions
+            document.getElementById('loginFormElement').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                const user = users.find(u => u.email === email && u.password === password);
+                if (user) {
+                    currentUser = user;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showDashboard();
+                    showNotification('Login successful!', 'success');
+                } else {
+                    showNotification('Invalid credentials!', 'error');
+                }
+            });
+
+            document.getElementById('registerFormElement').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const role = document.getElementById('registerRole').value;
+                
+                if (users.find(u => u.email === email)) {
+                    showNotification('Email already exists!', 'error');
+                    return;
+                }
+                
+                const newUser = {
+                    id: Date.now(),
+                    name,
+                    email,
+                    password,
+                    role,
+                    createdAt: new Date().toISOString()
+                };
+                
+                users.push(newUser);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                currentUser = newUser;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                showDashboard();
+                showNotification('Registration successful!', 'success');
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                showAuth();
+                showNotification('Logged out successfully!', 'success');
+            });
+
+            // Ticket Functions
+            document.getElementById('createTicketBtn').addEventListener('click', () => {
+                document.getElementById('createTicketModal').classList.remove('hidden');
+                loadCategoryOptions();
+            });
+
+            document.getElementById('closeCreateModal').addEventListener('click', () => {
+                document.getElementById('createTicketModal').classList.add('hidden');
+            });
+
+            document.getElementById('cancelCreateTicket').addEventListener('click', () => {
+                document.getElementById('createTicketModal').classList.add('hidden');
+            });
+
+            document.getElementById('createTicketForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const subject = document.getElementById('ticketSubject').value;
+                const category = document.getElementById('ticketCategory').value;
+                const priority = document.getElementById('ticketPriority').value;
+                const description = document.getElementById('ticketDescription').value;
+                const attachment = document.getElementById('ticketAttachment').files[0];
+                
+                const newTicket = {
+                    id: Date.now(),
+                    subject,
+                    category,
+                    priority,
+                    description,
+                    status: 'open',
+                    createdBy: currentUser.id,
+                    createdByName: currentUser.name,
+                    assignedTo: null,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    comments: [],
+                    votes: { up: 0, down: 0, userVotes: {} },
+                    attachment: attachment ? attachment.name : null
+                };
+                
+                tickets.push(newTicket);
+                localStorage.setItem('tickets', JSON.stringify(tickets));
+                
+                document.getElementById('createTicketModal').classList.add('hidden');
+                document.getElementById('createTicketForm').reset();
+                
+                loadTickets();
+                updateDashboardStats();
+                showNotification('Ticket created successfully!', 'success');
+            });
+
+            // Category Management
+            document.getElementById('manageCategories').addEventListener('click', () => {
+                document.getElementById('categoryModal').classList.remove('hidden');
+                loadCategoriesManagement();
+            });
+
+            document.getElementById('closeCategoryModal').addEventListener('click', () => {
+                document.getElementById('categoryModal').classList.add('hidden');
+            });
+
+            document.getElementById('addCategoryForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const categoryName = document.getElementById('newCategoryName').value;
+                
+                const newCategory = {
+                    id: Date.now(),
+                    name: categoryName
+                };
+                
+                categories.push(newCategory);
+                localStorage.setItem('categories', JSON.stringify(categories));
+                
+                document.getElementById('newCategoryName').value = '';
+                loadCategoriesManagement();
+                loadCategoryOptions();
+                showNotification('Category added successfully!', 'success');
+            });
+
+            // Event Listeners for Filters
+            document.getElementById('searchInput').addEventListener('input', loadTickets);
+            document.getElementById('statusFilter').addEventListener('change', loadTickets);
+            document.getElementById('categoryFilter').addEventListener('change', loadTickets);
+            document.getElementById('sortBy').addEventListener('change', loadTickets);
+            document.getElementById('myTicketsOnly').addEventListener('change', loadTickets);
+
+            // Modal Close Events
+            document.getElementById('closeDetailModal').addEventListener('click', () => {
+                document.getElementById('ticketDetailModal').classList.add('hidden');
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                const modals = [
+                    document.getElementById('createTicketModal'),
+                    document.getElementById('ticketDetailModal'),
+                    document.getElementById('categoryModal'),
+                    document.getElementById('editProfileModal')
+                ];
+                
+                modals.forEach(modal => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Edit profile button handler
+            document.getElementById('editProfileBtn')?.addEventListener('click', function() {
+                document.getElementById('editProfileModal').classList.remove('hidden');
+                // Populate form with current user data
+                document.getElementById('editProfileName').value = currentUser.name;
+                document.getElementById('editProfileEmail').value = currentUser.email;
+                document.getElementById('editProfilePassword').value = '';
+            });
+            
+            // Close edit profile modal
+            document.getElementById('closeEditProfileModal')?.addEventListener('click', function() {
+                document.getElementById('editProfileModal').classList.add('hidden');
+            });
+            
+            // Cancel edit profile
+            document.getElementById('cancelEditProfile')?.addEventListener('click', function() {
+                document.getElementById('editProfileModal').classList.add('hidden');
+            });
+            
+            // Handle profile image upload
+            document.getElementById('profileImageUpload')?.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const avatarPreview = document.getElementById('profileAvatarPreview');
+                        avatarPreview.innerHTML = '';
+                        avatarPreview.style.backgroundImage = `url(${event.target.result})`;
+                        avatarPreview.style.backgroundSize = 'cover';
+                        avatarPreview.style.backgroundPosition = 'center';
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+
+            // Edit profile form submission
+            document.getElementById('editProfileForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('editProfileName').value;
+                const email = document.getElementById('editProfileEmail').value;
+                const password = document.getElementById('editProfilePassword').value;
+                
+                // Update user data
+                currentUser.name = name;
+                currentUser.email = email;
+                if (password) {
+                    currentUser.password = password;
+                }
+                
+                // Update in users array
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    users[userIndex] = currentUser;
+                }
+                
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Update UI
+                document.getElementById('userName').textContent = `Welcome, ${currentUser.name}`;
+                document.getElementById('profileName').textContent = currentUser.name;
+                document.getElementById('profileEmail').textContent = currentUser.email;
+                
+                document.getElementById('editProfileModal').classList.add('hidden');
+                showNotification('Profile updated successfully!', 'success');
+            });
+        }
+
+        // Load and Display Tickets
+        function loadTickets() {
+            const ticketsList = document.getElementById('ticketsList');
+            let filteredTickets = [...tickets];
+            
+            // Apply filters
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+            const myTicketsOnly = document.getElementById('myTicketsOnly').checked;
+            
+            if (searchQuery) {
+                filteredTickets = filteredTickets.filter(ticket => 
+                    ticket.subject.toLowerCase().includes(searchQuery) ||
+                    ticket.description.toLowerCase().includes(searchQuery)
+                );
+            }
+            
+            if (statusFilter) {
+                filteredTickets = filteredTickets.filter(ticket => ticket.status === statusFilter);
+            }
+            
+            if (categoryFilter) {
+                filteredTickets = filteredTickets.filter(ticket => ticket.category === categoryFilter);
+            }
+            
+            if (myTicketsOnly) {
+                filteredTickets = filteredTickets.filter(ticket => ticket.createdBy === currentUser.id);
+            }
+            
+            // Sort tickets
+            switch (sortBy) {
+                case 'created':
+                    filteredTickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    break;
+                case 'modified':
+                    filteredTickets.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+                    break;
+                case 'replies':
+                    filteredTickets.sort((a, b) => b.comments.length - a.comments.length);
+                    break;
+                case 'votes':
+                    filteredTickets.sort((a, b) => (b.votes.up - b.votes.down) - (a.votes.up - a.votes.down));
+                    break;
+            }
+            
+            ticketsList.innerHTML = '';
+            
+            if (filteredTickets.length === 0) {
+                ticketsList.innerHTML = '<div class="p-6 text-center text-gray-500">No tickets found</div>';
+                return;
+            }
+            
+            filteredTickets.forEach(ticket => {
+                const ticketElement = createTicketElement(ticket);
+                ticketsList.appendChild(ticketElement);
+            });
+        }
+
+        function createTicketElement(ticket) {
+            const div = document.createElement('div');
+            div.className = 'p-6 hover:bg-gray-50 cursor-pointer';
+            
+            const statusColors = {
+                'open': 'bg-blue-100 text-blue-800',
+                'in-progress': 'bg-yellow-100 text-yellow-800',
+                'resolved': 'bg-green-100 text-green-800',
+                'closed': 'bg-gray-100 text-gray-800'
+            };
+            
+            const priorityColors = {
+                'low': 'text-green-600',
+                'medium': 'text-yellow-600',
+                'high': 'text-orange-600',
+                'urgent': 'text-red-600'
+            };
+            
+            const categoryName = categories.find(c => c.id.toString() === ticket.category)?.name || 'Unknown';
+            const canManage = currentUser.role === 'admin' || currentUser.role === 'agent';
+            const isOwner = ticket.createdBy === currentUser.id;
+            
+            div.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <h4 class="text-lg font-semibold text-gray-900">#${ticket.id} - ${ticket.subject}</h4>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColors[ticket.status]}">
+                                ${ticket.status.replace('-', ' ').toUpperCase()}
+                            </span>
+                            <span class="text-sm ${priorityColors[ticket.priority]} font-medium">
+                                ${ticket.priority.toUpperCase()}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 mb-2">${ticket.description.substring(0, 150)}${ticket.description.length > 150 ? '...' : ''}</p>
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                            <span><i class="fas fa-user mr-1"></i>${ticket.createdByName}</span>
+                            <span><i class="fas fa-tag mr-1"></i>${categoryName}</span>
+                            <span><i class="fas fa-clock mr-1"></i>${new Date(ticket.createdAt).toLocaleDateString()}</span>
+                            <span><i class="fas fa-comments mr-1"></i>${ticket.comments.length} comments</span>
+                            ${ticket.attachment ? '<span><i class="fas fa-paperclip mr-1"></i>Attachment</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <!-- Voting buttons -->
+                        <div class="flex items-center space-x-1">
+                            <button onclick="voteTicket(${ticket.id}, 'up')" class="p-1 text-gray-400 hover:text-green-500 transition ${ticket.votes.userVotes[currentUser.id] === 'up' ? 'text-green-500' : ''}">
+                                <i class="fas fa-thumbs-up"></i>
+                            </button>
+                            <span class="text-sm text-gray-600">${ticket.votes.up - ticket.votes.down}</span>
+                            <button onclick="voteTicket(${ticket.id}, 'down')" class="p-1 text-gray-400 hover:text-red-500 transition ${ticket.votes.userVotes[currentUser.id] === 'down' ? 'text-red-500' : ''}">
+                                <i class="fas fa-thumbs-down"></i>
+                            </button>
+                        </div>
+                        
+                        ${canManage ? `
+                        <div class="flex space-x-2">
+                            <button onclick="assignTicket(${ticket.id})" class="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                                ${ticket.assignedTo ? 'Reassign' : 'Assign'}
+                            </button>
+                            <select onchange="updateTicketStatus(${ticket.id}, this.value)" class="text-xs border rounded px-2 py-1">
+                                <option value="open" ${ticket.status === 'open' ? 'selected' : ''}>Open</option>
+                                <option value="in-progress" ${ticket.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="resolved" ${ticket.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+                                <option value="closed" ${ticket.status === 'closed' ? 'selected' : ''}>Closed</option>
+                            </select>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            div.addEventListener('click', (e) => {
+                if (!e.target.closest('button') && !e.target.closest('select')) {
+                    showTicketDetail(ticket.id);
+                }
+            });
+            
+            return div;
+        }
+
+        // Ticket Detail Functions
+        function showTicketDetail(ticketId) {
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (!ticket) return;
+            
+            const modal = document.getElementById('ticketDetailModal');
+            const title = document.getElementById('ticketDetailTitle');
+            const meta = document.getElementById('ticketDetailMeta');
+            const content = document.getElementById('ticketDetailContent');
+            
+            const categoryName = categories.find(c => c.id.toString() === ticket.category)?.name || 'Unknown';
+            const canManage = currentUser.role === 'admin' || currentUser.role === 'agent';
+            const isOwner = ticket.createdBy === currentUser.id;
+            
+            title.textContent = `#${ticket.id} - ${ticket.subject}`;
+            meta.innerHTML = `
+                <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 mr-2">
+                    ${ticket.status.replace('-', ' ').toUpperCase()}
+                </span>
+                <span class="text-gray-600">
+                    Created by ${ticket.createdByName} on ${new Date(ticket.createdAt).toLocaleDateString()} 
+                    | Category: ${categoryName} | Priority: ${ticket.priority.toUpperCase()}
+                </span>
+            `;
+            
+            content.innerHTML = `
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-2">Description</h4>
+                    <p class="text-gray-700 whitespace-pre-wrap">${ticket.description}</p>
+                    ${ticket.attachment ? `<p class="mt-2 text-sm text-gray-500"><i class="fas fa-paperclip mr-1"></i>Attachment: ${ticket.attachment}</p>` : ''}
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-4">Comments & Updates</h4>
+                    <div id="commentsList" class="space-y-4 mb-4">
+                        ${ticket.comments.map(comment => `
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="font-medium">${comment.authorName}</span>
+                                    <span class="text-sm text-gray-500">${new Date(comment.createdAt).toLocaleString()}</span>
+                                </div>
+                                <p class="text-gray-700 whitespace-pre-wrap">${comment.content}</p>
+                                ${comment.statusChange ? `<p class="text-sm text-blue-600 mt-2"><i class="fas fa-info-circle mr-1"></i>Status changed to: ${comment.statusChange}</p>` : ''}
+                                ${comment.systemMessage ? `<p class="text-sm text-purple-600 mt-1"><i class="fas fa-cog mr-1"></i>System Message</p>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${(isOwner || canManage) ? `
+                    <form onsubmit="addComment(event, ${ticket.id})" class="mt-4">
+                        <textarea id="commentText" placeholder="Add a comment..." rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 mb-3" required></textarea>
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                            Add Comment
+                        </button>
+                    </form>
+                    ` : ''}
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+
+        // Global functions for inline handlers
+        window.voteTicket = function(ticketId, voteType) {
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (!ticket) return;
+            
+            const previousVote = ticket.votes.userVotes[currentUser.id];
+            
+            // Remove previous vote
+            if (previousVote === 'up') ticket.votes.up--;
+            if (previousVote === 'down') ticket.votes.down--;
+            
+            // Add new vote if different from previous
+            if (previousVote !== voteType) {
+                if (voteType === 'up') ticket.votes.up++;
+                if (voteType === 'down') ticket.votes.down++;
+                ticket.votes.userVotes[currentUser.id] = voteType;
+            } else {
+                // Remove vote if same as previous
+                delete ticket.votes.userVotes[currentUser.id];
+            }
+            
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+            loadTickets();
+        };
+
+        window.assignTicket = function(ticketId) {
+            const agentName = prompt('Enter agent name to assign:');
+            if (!agentName) return;
+            
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (ticket) {
+                ticket.assignedTo = agentName;
+                ticket.updatedAt = new Date().toISOString();
+                
+                // Add assignment comment
+                const assignmentComment = {
+                    id: Date.now(),
+                    content: `Ticket assigned to ${agentName}`,
+                    authorId: currentUser.id,
+                    authorName: currentUser.name,
+                    createdAt: new Date().toISOString(),
+                    systemMessage: true
+                };
+                ticket.comments.push(assignmentComment);
+                
+                localStorage.setItem('tickets', JSON.stringify(tickets));
+                loadTickets();
+                showNotification(`Ticket assigned to ${agentName}`, 'success');
+            }
+        };
+
+        window.updateTicketStatus = function(ticketId, newStatus) {
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (!ticket) return;
+            
+            const oldStatus = ticket.status;
+            ticket.status = newStatus;
+            ticket.updatedAt = new Date().toISOString();
+            
+            // Add status change comment
+            const statusComment = {
+                id: Date.now(),
+                content: `Status changed from ${oldStatus} to ${newStatus}`,
+                authorId: currentUser.id,
+                authorName: currentUser.name,
+                createdAt: new Date().toISOString(),
+                statusChange: newStatus,
+                systemMessage: true
+            };
+            
+            ticket.comments.push(statusComment);
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+            
+            loadTickets();
+            updateDashboardStats();
+            showNotification(`Ticket status updated to ${newStatus}`, 'success');
+        };
+
+        window.addComment = function(event, ticketId) {
+            event.preventDefault();
+            const commentText = document.getElementById('commentText').value;
+            
+            if (!commentText.trim()) {
+                showNotification('Comment cannot be empty', 'error');
+                return;
+            }
+            
+            const ticket = tickets.find(t => t.id === ticketId);
+            if (!ticket) return;
+            
+            const comment = {
+                id: Date.now(),
+                content: commentText,
+                authorId: currentUser.id,
+                authorName: currentUser.name,
+                createdAt: new Date().toISOString()
+            };
+            
+            ticket.comments.push(comment);
+            ticket.updatedAt = new Date().toISOString();
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+            
+            // Refresh the ticket detail view
+            showTicketDetail(ticketId);
+            loadTickets();
+            showNotification('Comment added successfully!', 'success');
+        };
+
+        function loadCategoriesManagement() {
+            const categoriesList = document.getElementById('categoriesList');
+            categoriesList.innerHTML = '';
+            
+            categories.forEach(category => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <span class="font-medium">${category.name}</span>
+                    <button onclick="deleteCategory(${category.id})" class="text-red-500 hover:text-red-700 transition">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                categoriesList.appendChild(div);
+            });
+        }
+
+        window.deleteCategory = function(categoryId) {
+            if (confirm('Are you sure you want to delete this category?')) {
+                categories = categories.filter(c => c.id !== categoryId);
+                localStorage.setItem('categories', JSON.stringify(categories));
+                loadCategoriesManagement();
+                loadCategoryOptions();
+                showNotification('Category deleted successfully!', 'success');
+            }
+        };
+
+        // Load Categories into Dropdowns
+        function loadCategories() {
+            loadCategoryOptions();
+            loadCategoryFilter();
+        }
+
+        function loadCategoryOptions() {
+            const categorySelects = [
+                document.getElementById('ticketCategory'),
+                document.getElementById('categoryFilter')
+            ];
+            
+            categorySelects.forEach(select => {
+                if (select.id === 'categoryFilter') {
+                    select.innerHTML = '<option value="">All Categories</option>';
+                } else {
+                    select.innerHTML = '<option value="">Select Category</option>';
+                }
+                
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function loadCategoryFilter() {
+            const categoryFilter = document.getElementById('categoryFilter');
+            categoryFilter.innerHTML = '<option value="">All Categories</option>';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                categoryFilter.appendChild(option);
+            });
+        }
+
+        // Dashboard Stats
+        function updateDashboardStats() {
+            const openCount = tickets.filter(t => t.status === 'open').length;
+            const inProgressCount = tickets.filter(t => t.status === 'in-progress').length;
+            const resolvedCount = tickets.filter(t => t.status === 'resolved').length;
+            const closedCount = tickets.filter(t => t.status === 'closed').length;
+            
+            document.getElementById('openTicketsCount').textContent = openCount;
+            document.getElementById('inProgressCount').textContent = inProgressCount;
+            document.getElementById('resolvedCount').textContent = resolvedCount;
+            document.getElementById('closedCount').textContent = closedCount;
+        }
+
+        // Notification System
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                type === 'warning' ? 'bg-yellow-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${
+                        type === 'success' ? 'fa-check-circle' :
+                        type === 'error' ? 'fa-exclamation-circle' :
+                        type === 'warning' ? 'fa-exclamation-triangle' :
+                        'fa-info-circle'
+                    } mr-2"></i>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Helper function to get initials
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase();
+        }
+        
+
+        // Initialize the application
+        initApp();
+    </script>
+</body>
+</html>
